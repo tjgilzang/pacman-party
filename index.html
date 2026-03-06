@@ -18,11 +18,14 @@
 <body>
   <h1>정돈스돈스 팩맨</h1>
   <div class="status"><span id="score">Score: 0</span><span id="lives">Lives: 3</span><span id="state">Ready</span></div>
-  <canvas id="board" width="320" height="320" aria-label="정돈스돈스 팩맨 게임"></canvas>
+  <canvas id="board" width="320" height="320" aria-label="정돈스돈스 팩맨 게임" tabindex="0"></canvas>
   <div class="controls"><div>다면 키/화살표로 이동</div><div>스페이스 리스타트</div></div>
   <script>
     const canvas=document.getElementById('board');
     const ctx=canvas.getContext('2d');
+    canvas.addEventListener('click',()=>canvas.focus());
+    canvas.addEventListener('touchstart',()=>canvas.focus());
+    setTimeout(()=>canvas.focus(),500);
     const grid=20;
     const rows=canvas.height/grid;
     const cols=canvas.width/grid;
