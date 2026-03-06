@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>정돈스돈스 팩맨</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    *{box-sizing:border-box;}
+    body{margin:0;background:#050a18;color:#fefefe;font-family:"Pretendard",system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:20px;}
+    canvas{border:4px solid #0f1c3f;border-radius:16px;background:#03060f;box-shadow:0 20px 35px rgba(0,0,0,.7);image-rendering:pixelated;}
+    h1{letter-spacing:.3em;text-transform:uppercase;font-size:1.5rem;color:#fdd835;margin:0;}
+    .status{display:flex;gap:16px;font-size:.95rem;}
+    .status span{padding:6px 14px;border-radius:999px;background:#0d1d44;box-shadow:0 10px 20px rgba(0,0,0,.5);}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-size:.85rem;margin-top:8px;}
+    .controls div{background:#1b2c58;padding:6px 12px;border-radius:10px;}
+  </style>
+</head>
+<body>
+  <h1>정돈스돈스 팩맨</h1>
+  <div class="status"><span id="score">Score: 0</span><span id="lives">Lives: 3</span><span id="state">Ready</span></div>
+  <canvas id="board" width="320" height="320" aria-label="정돈스돈스 팩맨 게임"></canvas>
+  <div class="controls"><div>다면 키/화살표로 이동</div><div>스페이스 리스타트</div></div>
+  <script>
+    const canvas=document.getElementById('board');
+    const ctx=canvas.getContext('2d');
+    const grid=20;
+    const rows=canvas.height/grid;
+    const cols=canvas.width/grid;
+    const walls=[];
+    const pellets=[];
+    let pacman={x:1,y:1,dir:{x:1,y:0},next:null};
+    let score=0;
+    let lives=3;
+    let gameState='ready';
+    const ghost={x:cols-2,y:rows-2,dir:{x:-1,y:0},color:'#ff5252'};
+    const beep=()=>{const osc=new (window.AudioContext||window.webkitAudioContext)();const gain=osc.createGain();const o=osc.createOscillator();o.type='triangle';o.frequency.value=220;gain.gain.setValueAtTime(0.001,osc.currentTime);gain.gain.exponentialRampToValueAtTime(0.2,osc.currentTime+0.02);gain.gain.exponentialRampToValueAtTime(0.001,osc.currentTime+0.12);o.connect(gain);gain.connect(osc.destination);o.start();o.stop(osc.currentTime+0.12);};
+    for(let y=0;y<rows;y++){for(let x=0;x<cols;x++){if(y===0||x===0||y===rows-1||x===cols-1||((x%4===0||y%4===0)&&Math.random()<0.4)){walls.push({x,y});}else{pellets.push({x,y});}}}
+    function collision(obj, arr){return arr.some(n=>n.x===obj.x&&n.y===obj.y);}
+    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#01050f';ctx.fillRect(0,0,canvas.width,canvas.height);walls.forEach(w=>{ctx.fillStyle='#16294f';ctx.fillRect(w.x*grid,w.y*grid,grid,grid);});pellets.forEach(p=>{ctx.fillStyle='#fdd835';ctx.beginPath();ctx.arc(p.x*grid+grid/2,p.y*grid+grid/2,grid/6,0,Math.PI*2);ctx.fill();});ctx.fillStyle='#ffeb3b';ctx.beginPath();ctx.arc(pacman.x*grid+grid/2,pacman.y*grid+grid/2,grid/2-2,0,Math.PI*2);ctx.fill();ctx.fillStyle=ghost.color;ctx.beginPath();ctx.arc(ghost.x*grid+grid/2,ghost.y*grid+grid/2,grid/2-2,0,Math.PI*2);ctx.fill();}
+    function reset(){score=0;lives=3;pacman={x:1,y:1,dir:{x:1,y:0},next:null};ghost.x=cols-2;ghost.y=rows-2;gameState='running';document.getElementById('state').textContent='Running';document.getElementById('score').textContent='Score: '+score;document.getElementById('lives').textContent='Lives: '+lives;}
+    function step(){if(gameState!=='running')return; if(pacman.next&&!collision({x:pacman.x+pacman.next.x,y:pacman.y+pacman.next.y},walls)){pacman.dir=pacman.next;pacman.next=null;}const next={x:(pacman.x+pacman.dir.x+cols)%cols,y:(pacman.y+pacman.dir.y+rows)%rows};if(!collision(next,walls)){pacman=next;}const idx=pellets.findIndex(p=>p.x===pacman.x&&p.y===pacman.y);if(idx>-1){pellets.splice(idx,1);score+=10;document.getElementById('score').textContent='Score: '+score;beep();if(pellets.length===0){gameState='win';document.getElementById('state').textContent='Win!';}}const ghostDirOptions=[{x:Math.sign(pacman.x-ghost.x),y:0},{x:0,y:Math.sign(pacman.y-ghost.y)}];ghostDirOptions.forEach(d=>{if(Math.random()<0.5&&!collision({x:ghost.x+d.x,y:ghost.y+d.y},walls)){ghost.dir=d;}});const ghostNext={x:(ghost.x+ghost.dir.x+cols)%cols,y:(ghost.y+ghost.dir.y+rows)%rows};if(!collision(ghostNext,walls)){ghost.x=ghostNext.x;ghost.y=ghostNext.y;}if(pacman.x===ghost.x&&pacman.y===ghost.y){lives-=1;document.getElementById('lives').textContent='Lives: '+lives;gameState=lives>0?'running':'over';document.getElementById('state').textContent=lives>0?'Hit! Respawning...':'Game Over';if(lives>0){pacman={x:1,y:1,dir:{x:1,y:0},next:null};ghost.x=cols-2;ghost.y=rows-2;}else{document.getElementById('state').textContent='Game Over';}}}
+    document.addEventListener('keydown',e=>{if(e.code==='Space'){reset();}if(e.code==='ArrowUp')pacman.next={x:0,y:-1};if(e.code==='ArrowDown')pacman.next={x:0,y:1};if(e.code==='ArrowLeft')pacman.next={x:-1,y:0};if(e.code==='ArrowRight')pacman.next={x:1,y:0};});
+    document.getElementById('board').addEventListener('touchstart',e=>{const touch=e.touches[0];const rect=canvas.getBoundingClientRect();const x=(touch.clientX-rect.left)/rect.width-cols/2;const y=(touch.clientY-rect.top)/rect.height-rows/2;const dir=Math.abs(x)>Math.abs(y)?(x>0?{x:1,y:0}:{x:-1,y:0}):(y>0?{x:0,y:1}:{x:0,y:-1});pacman.next=dir;});
+    function loop(){step();draw();setTimeout(loop,gameState==='running'?150:500);} reset();loop();
+  </script>
+</body>
+</html>
