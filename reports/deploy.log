@@ -1,0 +1,31 @@
+Switched to a new branch 'gh-pages'
+M	reports/build.log
+rm '.gitignore'
+rm 'README.md'
+rm 'index.html'
+rm 'package-lock.json'
+rm 'package.json'
+rm 'reports/build.log'
+rm 'scripts/pacman.js'
+[gh-pages (root-commit) cef8214] chore: deploy static build
+ Committer: TJ <tj@TJui-MacBookPro.local>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 3 files changed, 960 insertions(+)
+ create mode 100644 .nojekyll
+ create mode 100644 index.html
+ create mode 100644 scripts/pacman.js
+To https://github.com/tjgilzang/pacman-party
+ + 2952a88...cef8214 gh-pages -> gh-pages (forced update)
+Switched to branch 'main'
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
