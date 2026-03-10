@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="preload" href="docs/assets/pacman-theme.css" as="style" />
     <link rel="stylesheet" href="docs/assets/pacman-theme.css" />
+    <style>
+      .control-pad { display:flex; flex-direction:column; align-items:center; gap:0.45rem; margin-top:0.75rem; }
+      .control-pad__row { display:flex; gap:0.45rem; }
+      .control-pad__button { padding:0.65rem 1rem; border:none; border-radius:999px; background:#ffe747; color:#041025; font-size:1.2rem; font-weight:700; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.2); }
+      .control-pad__button:active { transform:translateY(2px); box-shadow:0 4px 10px rgba(0,0,0,0.25); }
+    </style>
   </head>
   <body>
     <main class="scene">
@@ -51,6 +57,14 @@
       <div class="controls">
         <span class="control-pill">화살표 / WASD 이동</span>
         <span class="control-pill">스페이스 = 다시 시작</span>
+        <div class="control-pad" role="group" aria-label="팩맨 이동 버튼">
+          <button type="button" class="control-pad__button" data-dir="ArrowUp" aria-label="위로 이동">↑</button>
+          <div class="control-pad__row">
+            <button type="button" class="control-pad__button" data-dir="ArrowLeft" aria-label="왼쪽 이동">←</button>
+            <button type="button" class="control-pad__button" data-dir="ArrowDown" aria-label="아래로 이동">↓</button>
+            <button type="button" class="control-pad__button" data-dir="ArrowRight" aria-label="오른쪽 이동">→</button>
+          </div>
+        </div>
       </div>
     </main>
     <script type="module" src="scripts/pacman.js"></script>

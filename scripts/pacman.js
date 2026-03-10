@@ -100,6 +100,8 @@
     { x: 0, y: -1 },
   ];
   const SCARED_DURATION = 360;
+  const TOUCH_DEADZONE = 14;
+  let touchState = { active: false, startX: 0, startY: 0 };
 
   let pacman = createPacman();
   let score = 0;
@@ -112,10 +114,10 @@
   let showHighlight = false;
 
   canvas.addEventListener('click', () => canvas.focus());
-  canvas.addEventListener('touchstart', (event) => {
-    canvas.focus();
-    handleTouch(event);
-  });
+  canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+  canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+  canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+  canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
   setTimeout(() => canvas.focus(), 600);
 
   function createPacman() {
@@ -620,16 +622,55 @@
     handleGhostCollision();
   }
 
-  function handleTouch(event) {
-    const touch = event.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const dx = touch.clientX - rect.left - rect.width / 2;
-    const dy = touch.clientY - rect.top - rect.height / 2;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      pacman.next = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
-    } else {
-      pacman.next = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
+  function handleTouchStart(event) {
+    if (event.cancelable) {
+      event.preventDefault();
     }
+    const touch = event.touches[0];
+    canvas.focus();
+    touchState = {
+      active: true,
+      startX: touch.clientX,
+      startY: touch.clientY,
+    };
+    const rect = canvas.getBoundingClientRect();
+    const dx = touch.clientX - (rect.left + rect.width / 2);
+    const dy = touch.clientY - (rect.top + rect.height / 2);
+    const direction = resolveDirection(dx, dy);
+    if (direction) {
+      pacman.next = direction;
+    }
+  }
+
+  function handleTouchMove(event) {
+    if (!touchState.active || !event.touches.length) return;
+    event.preventDefault();
+    const touch = event.touches[0];
+    const dx = touch.clientX - touchState.startX;
+    const dy = touch.clientY - touchState.startY;
+    const direction = resolveDirection(dx, dy);
+    if (direction) {
+      pacman.next = direction;
+    }
+  }
+
+  function handleTouchEnd(event) {
+    if (event && event.cancelable) {
+      event.preventDefault();
+    }
+    touchState.active = false;
+  }
+
+  function resolveDirection(dx, dy) {
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    if (absX < TOUCH_DEADZONE && absY < TOUCH_DEADZONE) {
+      return null;
+    }
+    if (absX > absY) {
+      return { x: Math.sign(dx), y: 0 };
+    }
+    return { x: 0, y: Math.sign(dy) };
   }
 
   window.addEventListener('keydown', (event) => {
@@ -644,6 +685,18 @@
       pacman.next = nextDir;
     }
   });
+
+  const controlPad = document.querySelector('.control-pad');
+  if (controlPad) {
+    controlPad.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-dir]');
+      if (!target) return;
+      const buttonDir = directionMap[target.dataset.dir];
+      if (buttonDir) {
+        pacman.next = buttonDir;
+      }
+    });
+  }
 
   window.pacmanParty = {
     triggerStageWin: handleStageWin,
