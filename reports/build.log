@@ -1,0 +1,4 @@
+
+> pacman-party@1.0.0 build
+> rm -rf dist && mkdir -p dist && cp index.html dist/ && cp -R scripts dist/ && printf '' > dist/.nojekyll
+
