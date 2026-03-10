@@ -6,28 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="preload" href="docs/assets/pacman-theme.css" as="style" />
     <link rel="stylesheet" href="docs/assets/pacman-theme.css" />
-    <style>
-      .control-pad { display:flex; flex-direction:column; align-items:center; gap:0.45rem; margin-top:0.75rem; }
-      .control-pad__row { display:flex; gap:0.45rem; }
-      .control-pad__button { padding:0.65rem 1rem; border:none; border-radius:999px; background:#ffe747; color:#041025; font-size:1.2rem; font-weight:700; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.2); }
-      .control-pad__button:active { transform:translateY(2px); box-shadow:0 4px 10px rgba(0,0,0,0.25); }
-    </style>
   </head>
   <body>
-    <main class="scene">
-      <section class="hud" aria-live="polite">
+    <main class="scene" aria-label="정돈스돈스 팩맨 영웅 화면">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <section class="hud" aria-live="polite" aria-label="게임 상태">
         <p class="hud__title">정돈스돈스 팩맨</p>
         <p class="hud__subtitle">빛나는 도시 미로를 정돈하며 고스트를 쫓아내세요.</p>
         <div class="hud__metrics">
-          <div class="hud__chip hud__chip--stage">
+          <div class="hud__chip hud__chip--stage" aria-label="현재 스테이지">
             <span class="hud__label">stage</span>
             <span id="stage" class="hud__value">01</span>
           </div>
-          <div class="hud__chip">
+          <div class="hud__chip" aria-label="현재 점수">
             <span class="hud__label">score</span>
             <span id="score" class="hud__value">0</span>
           </div>
-          <div class="hud__chip">
+          <div class="hud__chip" aria-label="남은 목숨">
             <span class="hud__label">lives</span>
             <span id="lives" class="hud__value">3</span>
           </div>
@@ -54,9 +49,11 @@
         </div>
         <canvas id="board" width="360" height="360" aria-label="정돈스돈스 팩맨 보드" tabindex="0"></canvas>
       </div>
-      <div class="controls">
-        <span class="control-pill">화살표 / WASD 이동</span>
-        <span class="control-pill">스페이스 = 다시 시작</span>
+      <div class="controls" aria-label="모바일 컨트롤 단축">
+        <div class="control-pill-row">
+          <span class="control-pill">화살표 / WASD 이동</span>
+          <span class="control-pill">스페이스 = 다시 시작</span>
+        </div>
         <div class="control-pad" role="group" aria-label="팩맨 이동 버튼">
           <button type="button" class="control-pad__button" data-dir="ArrowUp" aria-label="위로 이동">↑</button>
           <div class="control-pad__row">

@@ -1,9 +1,0 @@
-> pacman-party@1.0.0 test
-> playwright test --config=playwright.config.js
-
-
-Running 1 test using 1 worker
-
-  ✓  1 [chromium] › tests/pacman.spec.js:10:1 › 정돈스돈스 팩맨 HUD/오버레이/fate transition 검증 (4.2s)
-
-  1 passed (5.4s)

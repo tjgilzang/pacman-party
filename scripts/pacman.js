@@ -10,6 +10,7 @@
   const ghostStatusRing = document.getElementById('ghostStatusRing');
   const successOverlay = document.getElementById('successOverlay');
   const overlayStageEl = document.getElementById('overlayStage');
+  const controlPadButtons = Array.from(document.querySelectorAll('.control-pad__button'));
 
   const palette = {
     background: '#020512',
@@ -60,6 +61,16 @@
     KeyA: { x: -1, y: 0 },
     KeyD: { x: 1, y: 0 },
   };
+  const keyCodeMap = {
+    ArrowUp: 38,
+    ArrowDown: 40,
+    ArrowLeft: 37,
+    ArrowRight: 39,
+    KeyW: 87,
+    KeyS: 83,
+    KeyA: 65,
+    KeyD: 68,
+  };
 
   const ghostBlueprints = [
     {
@@ -100,8 +111,6 @@
     { x: 0, y: -1 },
   ];
   const SCARED_DURATION = 360;
-  const TOUCH_DEADZONE = 14;
-  let touchState = { active: false, startX: 0, startY: 0 };
 
   let pacman = createPacman();
   let score = 0;
@@ -112,13 +121,96 @@
   let pathTrail = [];
   let highlightPath = [];
   let showHighlight = false;
+  let lastControlPadDirection = null;
+  let lastMovementDirection = null;
 
   canvas.addEventListener('click', () => canvas.focus());
-  canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-  canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-  canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-  canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+  canvas.addEventListener('touchstart', (event) => {
+    canvas.focus();
+    handleTouch(event);
+  });
   setTimeout(() => canvas.focus(), 600);
+
+  function createDirectionalKeyboardEvent(direction, type = 'keydown') {
+    const keyboardEvent = new KeyboardEvent(type, {
+      key: direction,
+      code: direction,
+      bubbles: true,
+      cancelable: true,
+    });
+    const keyCode = keyCodeMap[direction];
+    if (keyCode) {
+      try {
+        Object.defineProperty(keyboardEvent, 'keyCode', {
+          get: () => keyCode,
+        });
+        Object.defineProperty(keyboardEvent, 'which', {
+          get: () => keyCode,
+        });
+      } catch (error) {
+        // Some browsers prevent overriding keyCode/which; ignore
+      }
+    }
+    return keyboardEvent;
+  }
+
+  function dispatchDirectionalKey(direction, type = 'keydown') {
+    if (!direction) return;
+    if (type === 'keydown') {
+      lastControlPadDirection = direction;
+    }
+    canvas.focus();
+    window.dispatchEvent(createDirectionalKeyboardEvent(direction, type));
+  }
+
+  function attachControlPadListeners() {
+    controlPadButtons.forEach((button) => {
+      const direction = button.dataset.dir;
+      if (!direction) return;
+      const markActive = () => button.classList.add('control-pad__button--active');
+      const clearActive = () => button.classList.remove('control-pad__button--active');
+      let pointerDown = false;
+
+      const startInteraction = (event) => {
+        event.preventDefault();
+        if (pointerDown) return;
+        pointerDown = true;
+        markActive();
+        dispatchDirectionalKey(direction, 'keydown');
+      };
+
+      const endInteraction = () => {
+        if (!pointerDown) return;
+        pointerDown = false;
+        clearActive();
+        dispatchDirectionalKey(direction, 'keyup');
+      };
+
+      button.addEventListener('pointerdown', startInteraction);
+      button.addEventListener('touchstart', startInteraction);
+      button.addEventListener('pointerup', endInteraction);
+      button.addEventListener('pointerleave', endInteraction);
+      button.addEventListener('pointercancel', endInteraction);
+      button.addEventListener('touchend', endInteraction);
+      button.addEventListener('touchcancel', endInteraction);
+      button.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          markActive();
+          dispatchDirectionalKey(direction, 'keydown');
+        }
+      });
+      button.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          clearActive();
+          dispatchDirectionalKey(direction, 'keyup');
+        }
+      });
+    });
+  }
+
+  attachControlPadListeners();
 
   function createPacman() {
     return { x: 1, y: 1, dir: { x: 1, y: 0 }, next: null };
@@ -622,81 +714,34 @@
     handleGhostCollision();
   }
 
-  function handleTouchStart(event) {
-    if (event.cancelable) {
-      event.preventDefault();
-    }
+  function handleTouch(event) {
     const touch = event.touches[0];
-    canvas.focus();
-    touchState = {
-      active: true,
-      startX: touch.clientX,
-      startY: touch.clientY,
-    };
     const rect = canvas.getBoundingClientRect();
-    const dx = touch.clientX - (rect.left + rect.width / 2);
-    const dy = touch.clientY - (rect.top + rect.height / 2);
-    const direction = resolveDirection(dx, dy);
-    if (direction) {
-      pacman.next = direction;
+    const dx = touch.clientX - rect.left - rect.width / 2;
+    const dy = touch.clientY - rect.top - rect.height / 2;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      pacman.next = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
+    } else {
+      pacman.next = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
     }
-  }
-
-  function handleTouchMove(event) {
-    if (!touchState.active || !event.touches.length) return;
-    event.preventDefault();
-    const touch = event.touches[0];
-    const dx = touch.clientX - touchState.startX;
-    const dy = touch.clientY - touchState.startY;
-    const direction = resolveDirection(dx, dy);
-    if (direction) {
-      pacman.next = direction;
-    }
-  }
-
-  function handleTouchEnd(event) {
-    if (event && event.cancelable) {
-      event.preventDefault();
-    }
-    touchState.active = false;
-  }
-
-  function resolveDirection(dx, dy) {
-    const absX = Math.abs(dx);
-    const absY = Math.abs(dy);
-    if (absX < TOUCH_DEADZONE && absY < TOUCH_DEADZONE) {
-      return null;
-    }
-    if (absX > absY) {
-      return { x: Math.sign(dx), y: 0 };
-    }
-    return { x: 0, y: Math.sign(dy) };
   }
 
   window.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {
       event.preventDefault();
       reset();
+      lastMovementDirection = null;
       return;
     }
     const nextDir = directionMap[event.code];
     if (nextDir) {
       event.preventDefault();
       pacman.next = nextDir;
+      lastMovementDirection = event.code;
+    } else {
+      lastMovementDirection = null;
     }
   });
-
-  const controlPad = document.querySelector('.control-pad');
-  if (controlPad) {
-    controlPad.addEventListener('click', (event) => {
-      const target = event.target.closest('[data-dir]');
-      if (!target) return;
-      const buttonDir = directionMap[target.dataset.dir];
-      if (buttonDir) {
-        pacman.next = buttonDir;
-      }
-    });
-  }
 
   window.pacmanParty = {
     triggerStageWin: handleStageWin,
@@ -712,6 +757,8 @@
       positions: ghosts.map((ghost) => ({ x: ghost.x, y: ghost.y })),
       activeMode: ghosts.some((ghost) => ghost.state === 'scared') ? 'scared' : 'active',
     }),
+    getLastControlDirection: () => lastControlPadDirection,
+    getLastMovementDirection: () => lastMovementDirection,
     triggerGhostScare: setGhostsScared,
   };
 
