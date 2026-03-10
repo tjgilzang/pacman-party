@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "http-server -a 127.0.0.1 -p 4173 -c-1",
+    "start": "http-server -a 0.0.0.0 -p 4173 -c-1",
     "test": "playwright test --config=playwright.config.js",
     "lint": "htmlhint index.html"
   },
