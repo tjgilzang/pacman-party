@@ -1,293 +1,72 @@
 <!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <title>정돈스돈스 팩맨 파티</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      color-scheme: dark;
-      font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-      --bg: #020617;
-      --panel: rgba(5, 22, 63, 0.75);
-      --panel-strong: rgba(13, 29, 68, 0.9);
-      --accent: #ffe747;
-      --accent-strong: #fdd835;
-      --ghost-active: #9eedff;
-      --ghost-scared: #8ad7ff;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: radial-gradient(circle at 20% 20%, rgba(255, 231, 71, 0.2), transparent 45%),
-        linear-gradient(180deg, #070b1d 0%, #020512 60%, #010210 100%);
-      color: #fefefe;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .page {
-      width: min(960px, 100%);
-      background: rgba(1, 3, 10, 0.7);
-      border-radius: 32px;
-      padding: 32px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.45), 0 30px 60px rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(14px);
-    }
-
-    .hero {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    h1 {
-      margin: 0;
-      letter-spacing: 0.35em;
-      font-size: clamp(1.8rem, 3vw, 2.6rem);
-      text-transform: uppercase;
-    }
-
-    .eyebrow {
-      margin: 0;
-      font-size: 0.85rem;
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-      opacity: 0.75;
-    }
-
-    .hud-grid {
-      margin-top: 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-    }
-
-    .hud-card {
-      background: var(--panel);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 14px;
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .hud-card span {
-      font-size: 0.8rem;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.7);
-    }
-
-    .hud-value {
-      font-size: 1.6rem;
-      font-weight: 600;
-      color: var(--accent);
-    }
-
-    .ghost-meter {
-      margin-top: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .ghost-ring {
-      position: relative;
-      width: 132px;
-      height: 132px;
-      border-radius: 999px;
-      border: 3px solid rgba(255, 255, 255, 0.2);
-      display: grid;
-      place-items: center;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 60%);
-      transition: border-color 0.35s ease;
-    }
-
-    .ghost-ring[data-state="active"] {
-      border-color: #3bd2ff;
-      box-shadow: 0 0 20px rgba(59, 210, 255, 0.45);
-    }
-
-    .ghost-ring[data-state="scared"] {
-      border-color: #8ad7ff;
-      box-shadow: 0 0 20px rgba(138, 215, 255, 0.45);
-    }
-
-    .ghost-count {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .ghost-state {
-      font-size: 0.95rem;
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.68);
-      margin: 0;
-    }
-
-    .ghost-label {
-      margin: 0;
-      font-size: 0.75rem;
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.5);
-    }
-
-    .canvas-area {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      align-items: center;
-    }
-
-    .canvas-frame {
-      position: relative;
-      padding: 14px;
-      border-radius: 26px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    canvas {
-      width: 360px;
-      height: 360px;
-      display: block;
-      border-radius: 20px;
-      border: 4px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
-      background: #01030c;
-    }
-
-    .success-overlay {
-      position: absolute;
-      inset: 0;
-      border-radius: 20px;
-      background: rgba(2, 6, 23, 0.9);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.4em;
-      font-size: 1rem;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-
-    .success-overlay.is-visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .success-stage {
-      font-size: 1.8rem;
-      letter-spacing: 0.6em;
-      color: var(--accent-strong);
-    }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      font-size: 0.9rem;
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .control-pill {
-      background: var(--panel-strong);
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    footer {
-      margin-top: 18px;
-      text-align: center;
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.7);
-    }
-
-    @media (max-width: 640px) {
-      canvas {
-        width: 100%;
-        height: auto;
-      }
-
-      .ghost-ring {
-        width: 110px;
-        height: 110px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <header class="hero">
-      <p class="eyebrow">정돈스돈스</p>
-      <h1>팩맨 파티</h1>
-      <div class="hud-grid">
-        <div class="hud-card">
-          <span>SCORE</span>
-          <strong id="score" class="hud-value">0000</strong>
+  <head>
+    <meta charset="utf-8" />
+    <title>정돈스돈스 팩맨</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" href="docs/assets/pacman-theme.css" as="style" />
+    <link rel="stylesheet" href="docs/assets/pacman-theme.css" />
+    <style>
+      .control-pad { display:flex; flex-direction:column; align-items:center; gap:0.45rem; margin-top:0.75rem; }
+      .control-pad__row { display:flex; gap:0.45rem; }
+      .control-pad__button { padding:0.65rem 1rem; border:none; border-radius:999px; background:#ffe747; color:#041025; font-size:1.2rem; font-weight:700; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.2); }
+      .control-pad__button:active { transform:translateY(2px); box-shadow:0 4px 10px rgba(0,0,0,0.25); }
+    </style>
+  </head>
+  <body>
+    <main class="scene">
+      <section class="hud" aria-live="polite">
+        <p class="hud__title">정돈스돈스 팩맨</p>
+        <p class="hud__subtitle">빛나는 도시 미로를 정돈하며 고스트를 쫓아내세요.</p>
+        <div class="hud__metrics">
+          <div class="hud__chip hud__chip--stage">
+            <span class="hud__label">stage</span>
+            <span id="stage" class="hud__value">01</span>
+          </div>
+          <div class="hud__chip">
+            <span class="hud__label">score</span>
+            <span id="score" class="hud__value">0</span>
+          </div>
+          <div class="hud__chip">
+            <span class="hud__label">lives</span>
+            <span id="lives" class="hud__value">3</span>
+          </div>
         </div>
-        <div class="hud-card">
-          <span>stage</span>
-          <strong id="stage" class="hud-value">01</strong>
+        <p id="state" class="hud__state">READY</p>
+        <div class="hud__ghost-panel" aria-label="고스트 상태">
+          <span class="hud__ghost-label">ghosts</span>
+          <div class="hud__ghost-values">
+            <span id="ghostCount" class="hud__ghost-count">04</span>
+            <span id="ghostState" class="hud__ghost-state">ACTIVE</span>
+          </div>
         </div>
-        <div class="hud-card">
-          <span>state</span>
-          <strong id="state" class="hud-value">READY</strong>
+      </section>
+      <div class="board-wrapper">
+        <div class="board-glow" aria-hidden="true"></div>
+        <div class="ghost-status-ring" id="ghostStatusRing" data-state="active" aria-hidden="true"></div>
+        <div class="success-overlay" id="successOverlay" aria-live="assertive" aria-hidden="true">
+          <p class="success-overlay__eyebrow">Stage Complete</p>
+          <h2 class="success-overlay__title">성공했습니다!</h2>
+          <p class="success-overlay__subtitle">
+            스테이지 <span id="overlayStage">01</span>를 정돈 완료했습니다.
+          </p>
+          <p class="success-overlay__hint">빛나는 경로가 다음 길을 안내합니다.</p>
         </div>
-        <div class="hud-card">
-          <span>lives</span>
-          <strong id="lives" class="hud-value">03</strong>
-        </div>
-      </div>
-      <div class="ghost-meter">
-        <div class="ghost-ring" id="ghostStatusRing" data-state="active">
-          <span id="ghostCount" class="ghost-count">04</span>
-        </div>
-        <div>
-          <p id="ghostState" class="ghost-state">ACTIVE</p>
-          <p class="ghost-label">Ghost 모드</p>
-        </div>
-      </div>
-    </header>
-    <section class="canvas-area">
-      <div class="canvas-frame">
-        <canvas id="board" width="360" height="360" tabindex="0" aria-label="정돈스돈스 팩맨 캔버스"></canvas>
-        <div id="successOverlay" class="success-overlay" aria-hidden="true">
-          <p>STAGE CLEAR</p>
-          <p class="success-stage">STAGE <span id="overlayStage">01</span></p>
-        </div>
+        <canvas id="board" width="360" height="360" aria-label="정돈스돈스 팩맨 보드" tabindex="0"></canvas>
       </div>
       <div class="controls">
-        <div class="control-pill">WASD / 화살표</div>
-        <div class="control-pill">스페이스 → 재시작</div>
-        <div class="control-pill">터치 화면 → 방향 전환</div>
+        <span class="control-pill">화살표 / WASD 이동</span>
+        <span class="control-pill">스페이스 = 다시 시작</span>
+        <div class="control-pad" role="group" aria-label="팩맨 이동 버튼">
+          <button type="button" class="control-pad__button" data-dir="ArrowUp" aria-label="위로 이동">↑</button>
+          <div class="control-pad__row">
+            <button type="button" class="control-pad__button" data-dir="ArrowLeft" aria-label="왼쪽 이동">←</button>
+            <button type="button" class="control-pad__button" data-dir="ArrowDown" aria-label="아래로 이동">↓</button>
+            <button type="button" class="control-pad__button" data-dir="ArrowRight" aria-label="오른쪽 이동">→</button>
+          </div>
+        </div>
       </div>
-    </section>
-    <footer>
-      <p>화살표 키 또는 WASD로 팩맨을 이동하고, 유령을 피하면서 펠릿을 모두 먹으면 다음 스테이지.</p>
-      <p>기록 버튼을 눌러 언제든 리셋할 수 있고, 터치에서도 플레이 가능.</p>
-    </footer>
-  </div>
-  <script src="scripts/pacman.js"></script>
-</body>
+    </main>
+    <script type="module" src="scripts/pacman.js"></script>
+  </body>
 </html>
