@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>정돈스돈스 팩맨</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" href="docs/assets/pacman-theme.css" as="style" />
+    <link rel="stylesheet" href="docs/assets/pacman-theme.css" />
+  </head>
+  <body>
+    <main class="scene">
+      <section class="hud" aria-live="polite">
+        <p class="hud__title">정돈스돈스 팩맨</p>
+        <p class="hud__subtitle">빛나는 도시 미로를 정돈하며 고스트를 쫓아내세요.</p>
+        <div class="hud__metrics">
+          <div class="hud__chip hud__chip--stage">
+            <span class="hud__label">stage</span>
+            <span id="stage" class="hud__value">01</span>
+          </div>
+          <div class="hud__chip">
+            <span class="hud__label">score</span>
+            <span id="score" class="hud__value">0</span>
+          </div>
+          <div class="hud__chip">
+            <span class="hud__label">lives</span>
+            <span id="lives" class="hud__value">3</span>
+          </div>
+        </div>
+        <p id="state" class="hud__state">READY</p>
+        <div class="hud__ghost-panel" aria-label="고스트 상태">
+          <span class="hud__ghost-label">ghosts</span>
+          <div class="hud__ghost-values">
+            <span id="ghostCount" class="hud__ghost-count">04</span>
+            <span id="ghostState" class="hud__ghost-state">ACTIVE</span>
+          </div>
+        </div>
+      </section>
+      <div class="board-wrapper">
+        <div class="board-glow" aria-hidden="true"></div>
+        <div class="ghost-status-ring" id="ghostStatusRing" data-state="active" aria-hidden="true"></div>
+        <div class="success-overlay" id="successOverlay" aria-live="assertive" aria-hidden="true">
+          <p class="success-overlay__eyebrow">Stage Complete</p>
+          <h2 class="success-overlay__title">성공했습니다!</h2>
+          <p class="success-overlay__subtitle">
+            스테이지 <span id="overlayStage">01</span>를 정돈 완료했습니다.
+          </p>
+          <p class="success-overlay__hint">빛나는 경로가 다음 길을 안내합니다.</p>
+        </div>
+        <canvas id="board" width="360" height="360" aria-label="정돈스돈스 팩맨 보드" tabindex="0"></canvas>
+      </div>
+      <div class="controls">
+        <span class="control-pill">화살표 / WASD 이동</span>
+        <span class="control-pill">스페이스 = 다시 시작</span>
+      </div>
+    </main>
+    <script type="module" src="scripts/pacman.js"></script>
+  </body>
+</html>
